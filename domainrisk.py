@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# Domain Risk counts total number of unique hosts in a webpage - higher is worse - ideal is under 5.
 # Royans K Tharakan - 2024 May 26
 
 import requests
@@ -51,7 +52,6 @@ def extract_javascript_hosts(response):
             for content in script.contents:
                 if isinstance(content, str):
                     # Use regex to find URLs in the script content
-                    #regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
                     regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>\"']+|\(([^\s()<>\"']+|(\([^\s()<>\"']+\)))*\))+(?:\(([^\s()<>\"']+|(\([^\s()<>\"']+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
                     urls = re.findall(regex, content)
                     for url in urls:
