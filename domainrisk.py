@@ -25,7 +25,7 @@ def get_homepage(domain):
 
     for url in urls:
         try:
-            response = requests.get(url,  headers=headers, timeout=5)
+            response = requests.get(url,  headers=headers, timeout=3)
             response.raise_for_status()  # Raise an exception for bad status codes
             return response
         except requests.exceptions.RequestException as e:
