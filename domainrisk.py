@@ -22,7 +22,6 @@ def get_homepage(domain):
     ua = UserAgent()
     headers = {'User-Agent': ua.chrome}  # Set Chrome User-Agent
 
-
     for url in urls:
         try:
             response = requests.get(url,  headers=headers, timeout=3)
