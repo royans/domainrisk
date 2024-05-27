@@ -6,20 +6,21 @@ Supply chain attacks are the new normal. Every site which includes scripts/asset
 
 DomainRisk does a simple check - it checks how many unique hostnames are included in the script section of the top level website and counts them out. Most of the very mature sites, which care about security should generally have less than 5 to 6 unique hosts. But unfortunately, some have dozens.
 
+**Usage** : ./batch.sh "list of domain names"
+<pre>
+$ ./batch.sh google.com facebook.com slashdot.org techmeme.com cnn.com bedbathandbeyond.com xda-developers.com mlb.com
+google.com :4
+facebook.com :0
+slashdot.org :8
+techmeme.com :2
+cnn.com :76
+bedbathandbeyond.com :26
+xda-developers.com :89
+mlb.com :60
+</pre>
+
 **Usage** : python3 domainrisk.py "domainname.com"
 <pre>
-$ python3 domainrisk.py "cnn.com" | wc -l
-76
-
-$ python3 domainrisk.py "slashdot.org" | wc -l
-6
-
-$ python3 domainrisk.py "facebook.com" | wc -l
-2
-
-$ python3 domainrisk.py "google.com" | wc -l
-4
-
 $ python3 domainrisk.py "cnn.com" 
 registry.api.cnn.io
 politics.api.cnn.io
