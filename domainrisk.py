@@ -120,7 +120,7 @@ if __name__ == "__main__":
         (javascript_hosts, javascript_domains) = extract_javascript_hosts(response)
         unique_domains = set(javascript_domains)
         unique_hosts = set(javascript_hosts)
-        print("Domain Namne - Unique hosts - Unique domains")
+        print("Domain UniqueHosts,UniqueDomains")
         print(domain+" "+str(len(unique_hosts))+","+str( len(unique_domains)))
         for host in unique_domains:
             print(host)
