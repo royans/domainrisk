@@ -1,18 +1,17 @@
 #!/bin/bash
 
+echo "Domain <unique hosts>, <unique domains>"
 if [ -f $1 ]
 then
 	for host in `cat $1`
 	do
-		echo -n "$host :"; 
-		timeout 14 python3 domainrisk.py $host 2> /dev/null | grep -v Error | tee  /tmp/domain_risk.$host.out | wc -l 
+		timeout 14 python3 domainrisk.py $host 2> /dev/null | grep -v Error | tee  /tmp/domain_risk.$host.out  | grep \,
 	done
 else
 
 for domain in $@ ; 
 do 
-	echo -n "$domain :"; 
-	timeout 14 python3 domainrisk.py $domain 2> /dev/null | grep -v Error | tee  /tmp/domain_risk.$domain.out | wc -l 
+	timeout 14 python3 domainrisk.py $domain 2> /dev/null | grep -v Error | tee  /tmp/domain_risk.$domain.out  | grep \,
 done
 
 fi

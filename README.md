@@ -8,94 +8,65 @@ DomainRisk does a simple check - it checks how many unique hostnames are include
 
 **Usage** : ./batch.sh "list of domain names"
 <pre>
-$ ./batch.sh google.com facebook.com slashdot.org techmeme.com cnn.com bedbathandbeyond.com xda-developers.com mlb.com
-google.com :4
-facebook.com :0
-slashdot.org :8
-techmeme.com :2
-cnn.com :76
-bedbathandbeyond.com :26
-xda-developers.com :89
-mlb.com :60
+./batch.sh google.com facebook.com slashdot.org techmeme.com cnn.com bedbathandbeyond.com xda-developers.com mlb.com
+Domain <unique hosts>, <unique domains>
+google.com 4,2
+facebook.com 2,2
+slashdot.org 6,4
+techmeme.com 2,2
+cnn.com 76,44
+bedbathandbeyond.com 26,18
+xda-developers.com 14,10
+mlb.com 60,37
 </pre>
 
 **Usage** : python3 domainrisk.py "domainname.com"
 <pre>
 $ python3 domainrisk.py "cnn.com" 
-registry.api.cnn.io
-politics.api.cnn.io
-www.dianomi.com
-prod.pdx.api.cnn.io
-bea4.v.fwmrm.net
-fave-api.cnn.com
-wopr.turnerapps.com
-www.wbdprivacy.com
-www.facebook.com
-npms.io
-tvem.cdn.turner.com
-www.datadoghq-browser-agent.com
-wbd-api.arkoselabs.com
-ads.pubmatic.com
-cdnjs.cloudflare.com
-z.cdp-dev.cnn.com
-i.cdn.turner.com
-www.datad0g-browser-agent.com
-pixel-us-east.rubiconproject.com
-s.ntv.io
-data.api.cnn.io
-prod.di.api.cnn.io
-www.pledge.to
-get.s-onetag.com
-api.business.cnn.io
-amp.cnn.com
-static.chartbeat.com
-content.api.cnn.com
-search.prod.di.api.cnn.io
-lightning.cnn.com
-turnip.cdn.turner.com
-tag.bounceexchange.com
-eq97f.publishers.tremorhub.com
-aswpsdkus.com
-cdn.cookielaw.org
-audience.cnn.com
-status.arkoselabs.com
-politics-static.cnn.io
-www.youtube.com
-daltonmt1.qa.identityservices.io
-www.instagram.com
-dam2.cms.cnn.com
-money.cnn.com
-ite.api.tvemanager.ngtv.io
-audience.qa.cnn.com
-arkose.daex.qa.identityservices.io
-a.jsrdn.com
-twitter.com
-ib.adnxs.com
-d2otbl5v981rj6.cloudfront.net
-production.dataviz.cnn.io
-idsync.rlcdn.com
-cdn.optimizely.com
-agility.cnn.com
-assets.publicgood.com
-sync.search.spotxchange.com
-schema.org
-www.w3.org
-git.io
-live.rezync.com
-daltonmt1.identityservices.io
-launcher.spot.im
-arkose.daex.identityservices.io
-www.cnn.com
-dynaimage.cdn.turner.com
-media.cnn.com
-cdn.cnn.com
-markets.money.cnn.com
+Domain Namne - Unique hosts - Unique domains
+cnn.com 76,44
+arkoselabs.com
+ntv.io
+optimizely.com
+publicgood.com
+youtube.com
+turnerapps.com
 axios-http.com
-atlas.cnn.io
-sse01.cnn.com
+s-onetag.com
+ngtv.io
+pledge.to
+rezync.com
+google.com
+identityservices.io
+amazonaws.com
+dianomi.com
+twitter.com
+adnxs.com
+aswpsdkus.com
 handlebarsjs.com
-fave.api.cnn.io
-accounts.google.com
-bvrmvkrkie.execute-api.us-east-1.amazonaws.com
-github.com  
+rubiconproject.com
+turner.com
+cookielaw.org
+spot.im
+datadoghq-browser-agent.com
+cnn.com
+cloudfront.net
+facebook.com
+github.com
+tremorhub.com
+spotxchange.com
+npms.io
+schema.org
+datad0g-browser-agent.com
+cnn.io
+chartbeat.com
+jsrdn.com
+bounceexchange.com
+rlcdn.com
+git.io
+fwmrm.net
+pubmatic.com
+wbdprivacy.com
+w3.org
+instagram.com
 </pre>

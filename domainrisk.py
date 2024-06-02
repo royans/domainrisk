@@ -10,6 +10,50 @@ from urllib.parse import urlparse
 from fake_useragent import UserAgent
 import re
 
+# Function to remove special characters
+def remove_special_chars(domain_name):
+  """Removes special characters from a domain name."""
+  return re.sub(r'[^a-zA-Z0-9.-]', '', domain_name)
+
+def extract_domain(fqdn):
+  """
+  Extracts the top-level domain (TLD) from a fully qualified domain name (FQDN).
+
+  Args:
+    fqdn: The fully qualified domain name (e.g., "www.abc.com").
+
+  Returns:
+    The top-level domain (e.g., "abc.com").
+  """
+
+  parts = fqdn.split('.')
+  # If there's only a subdomain and a TLD, return the entire domain name
+  if len(parts) == 2:
+    return '.'.join(parts)
+  else:
+    # Check if the TLD is a two-letter country code
+    if len(parts[-1]) == 2:
+      # Check if the second-to-last part is a generic TLD
+      generic_tlds = ["com", "net", "org", "edu", "gov", "mil"]
+      if parts[-2] in generic_tlds:
+        # If it is, return the last three parts
+        return '.'.join(parts[-3:])
+      else:
+        # Otherwise, return the last two parts (country code TLD)
+        return '.'.join(parts[-2:])
+    else:
+      # Standard case, return the last two parts (generic TLD)
+      return '.'.join(parts[-2:])
+
+# Function to remove special characters
+def remove_special_chars(domain_name):
+  """Removes special characters from a domain name."""
+  return re.sub(r'[^a-zA-Z0-9.-]', '', domain_name)
+
+def tld(fqdn):
+    output=extract_domain(remove_special_chars(fqdn))
+    return output
+
 def get_homepage(domain):
     """Tries different URLs to get the homepage of a domain."""
     urls = [
@@ -39,6 +83,7 @@ def extract_javascript_hosts(response):
     soup = BeautifulSoup(response.content, "html.parser")
     scripts = soup.find_all("script")  # Get all <script> tags, regardless of attributes
     hosts = []
+    domains = []
     for script in scripts:
         # Check for 'src' attribute (for external JavaScript files)
         if script.get('src'):
@@ -58,7 +103,8 @@ def extract_javascript_hosts(response):
                         if hostname:
                             if ("." in hostname):
                                 hosts.append(hostname)
-    return hosts
+                                domains.append(tld(hostname))
+    return (hosts,domains)
 
 
 if __name__ == "__main__":
@@ -71,7 +117,10 @@ if __name__ == "__main__":
     response = get_homepage(domain)
     #print(response.content )
     if response:
-        javascript_hosts = extract_javascript_hosts(response)
+        (javascript_hosts, javascript_domains) = extract_javascript_hosts(response)
+        unique_domains = set(javascript_domains)
         unique_hosts = set(javascript_hosts)
-        for host in unique_hosts:
+        print("Domain Namne - Unique hosts - Unique domains")
+        print(domain+" "+str(len(unique_hosts))+","+str( len(unique_domains)))
+        for host in unique_domains:
             print(host)
