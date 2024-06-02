@@ -9,7 +9,7 @@ DomainRisk does a simple check - it checks how many unique hostnames are include
 **Usage** : ./batch.sh "list of domain names"
 <pre>
 ./batch.sh google.com facebook.com slashdot.org techmeme.com cnn.com bedbathandbeyond.com xda-developers.com mlb.com
-Domain <unique hosts>, <unique domains>
+Domain UniqueHosts,UniqueDomains
 google.com 4,2
 facebook.com 2,2
 slashdot.org 6,4
