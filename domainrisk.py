@@ -122,5 +122,5 @@ if __name__ == "__main__":
         unique_hosts = set(javascript_hosts)
         print("Domain UniqueHosts,UniqueDomains")
         print(domain+" "+str(len(unique_hosts))+","+str( len(unique_domains)))
-        for host in unique_domains:
-            print(host)
+        for host in unique_hosts:
+            print(host+" "+tld(host))
