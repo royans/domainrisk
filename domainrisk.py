@@ -34,7 +34,7 @@ def extract_domain(fqdn):
     # Check if the TLD is a two-letter country code
     if len(parts[-1]) == 2:
       # Check if the second-to-last part is a generic TLD
-      generic_tlds = ["com", "net", "org", "edu", "gov", "mil"]
+      generic_tlds = ["com", "net", "org", "edu", "gov", "mil", "co"]
       if parts[-2] in generic_tlds:
         # If it is, return the last three parts
         return '.'.join(parts[-3:])
