@@ -181,8 +181,10 @@ def getDomainRisk(domain):
     certinfo = get_certificate_details(domain)
     if isinstance(certinfo, dict):
         not_after_date = convert_to_YYYY_MM_DD(certinfo["notAfter"])
-        issuer_organization = certinfo["issuer"][1][0][1]
-    # print(response.content )
+        for inner_tuple in certinfo["issuer"]:
+            if inner_tuple[0][0] == "organizationName":
+                issuer_organization = inner_tuple[0][1]
+                break
     if response:
         (javascript_hosts, javascript_domains) = extract_javascript_hosts(response)
         unique_domains = set(javascript_domains)
@@ -196,7 +198,6 @@ def getDomainRisk(domain):
             "issuer_organization": issuer_organization,
         }
     return domain_data
-
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
