@@ -15,8 +15,8 @@ import socket
 from datetime import datetime
 from urllib3.util.ssl_ import create_urllib3_context
 
-
 # Function to remove special characters
+
 def remove_special_chars(domain_name):
     """Removes special characters from a domain name."""
     return re.sub(r"[^a-zA-Z0-9.-]", "", domain_name)
@@ -171,16 +171,9 @@ def extract_javascript_hosts(response):
                                 domains.append(tld(hostname))
     return (hosts, domains)
 
-
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <domain_name>")
-        sys.exit(1)
-
-    domain = sys.argv[1]
+def getDomainRisk(domain_name):
     not_after_date = ""
     issuer_organization = ""
-
     response = get_homepage(domain)
     certinfo = get_certificate_details(domain)
     if isinstance(certinfo, dict):
@@ -191,7 +184,19 @@ if __name__ == "__main__":
         (javascript_hosts, javascript_domains) = extract_javascript_hosts(response)
         unique_domains = set(javascript_domains)
         unique_hosts = set(javascript_hosts)
-        print("Domain UniqueHosts,UniqueDomains")
+        return (domain,unique_hosts,unique_domains,not_after_date,issuer_organization)
+    return;  
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <domain_name>")
+        sys.exit(1)
+
+    domain = sys.argv[1]
+    (_domain,unique_hosts,unique_domains,not_after_date,issuer_organization) = getDomainRisk(domain)
+    
+    if _domain:
+        print("Domain UniqueHosts,UniqueDomains,Cert expiry, Cert issuer")
         print(
             domain
             + ","
@@ -205,3 +210,6 @@ if __name__ == "__main__":
         )
         for host in unique_hosts:
             print(host + " " + tld(host))
+
+      
+
