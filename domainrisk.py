@@ -9,50 +9,111 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from fake_useragent import UserAgent
 import re
+import ssl
+import socket
+from datetime import datetime
+from urllib3.util.ssl_ import create_urllib3_context
+
 
 # Function to remove special characters
 def remove_special_chars(domain_name):
-  """Removes special characters from a domain name."""
-  return re.sub(r'[^a-zA-Z0-9.-]', '', domain_name)
+    """Removes special characters from a domain name."""
+    return re.sub(r"[^a-zA-Z0-9.-]", "", domain_name)
+
+
+def convert_to_YYYY_MM_DD(date_time_str) -> str:
+    """
+    Converts a date and time string to the format YYYY/MM/DD.
+
+    Args:
+        date_time_str: The date and time string to convert.
+
+    Returns:
+        The converted date and time string in YYYY/MM/DD format, or None if the input string
+        cannot be parsed.
+    """
+
+    try:
+        # Define the input format with spaces separating elements
+        input_format = "%b %d %H:%M:%S %Y %Z"
+        # Parse the datetime string
+        date_time_obj = datetime.strptime(date_time_str, input_format)
+        # Define the desired output format
+        output_format = "%Y/%m/%d"
+        # Format the datetime object as a string in YYYY/MM/DD
+        return date_time_obj.strftime(output_format)
+    except ValueError:
+        # Handle cases where the string cannot be parsed in the expected format
+        return None
+
+
+def get_certificate_details(url):
+    """
+    Retrieves the certificate details for a given URL.
+
+    Args:
+        url: The URL of the website.
+
+    Returns:
+        A dictionary containing the certificate details, or an error message if an error occurs.
+    """
+
+    try:
+        # Ensure the URL starts with "https://"
+        url = "https://" + url if not url.startswith("https://") else url
+        parsed_url = urlparse(url)
+        hostname = parsed_url.hostname
+
+        context = ssl.create_default_context()
+        with socket.create_connection((hostname, 443), timeout=2) as sock:
+            with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+                cert = ssock.getpeercert()
+                return cert
+    except Exception as e:
+        return f"Error# {e}"
+
 
 def extract_domain(fqdn):
-  """
-  Extracts the top-level domain (TLD) from a fully qualified domain name (FQDN).
+    """
+    Extracts the top-level domain (TLD) from a fully qualified domain name (FQDN).
 
-  Args:
-    fqdn: The fully qualified domain name (e.g., "www.abc.com").
+    Args:
+      fqdn: The fully qualified domain name (e.g., "www.abc.com").
 
-  Returns:
-    The top-level domain (e.g., "abc.com").
-  """
+    Returns:
+      The top-level domain (e.g., "abc.com").
+    """
 
-  parts = fqdn.split('.')
-  # If there's only a subdomain and a TLD, return the entire domain name
-  if len(parts) == 2:
-    return '.'.join(parts)
-  else:
-    # Check if the TLD is a two-letter country code
-    if len(parts[-1]) == 2:
-      # Check if the second-to-last part is a generic TLD
-      generic_tlds = ["com", "net", "org", "edu", "gov", "mil", "co"]
-      if parts[-2] in generic_tlds:
-        # If it is, return the last three parts
-        return '.'.join(parts[-3:])
-      else:
-        # Otherwise, return the last two parts (country code TLD)
-        return '.'.join(parts[-2:])
+    parts = fqdn.split(".")
+    # If there's only a subdomain and a TLD, return the entire domain name
+    if len(parts) == 2:
+        return ".".join(parts)
     else:
-      # Standard case, return the last two parts (generic TLD)
-      return '.'.join(parts[-2:])
+        # Check if the TLD is a two-letter country code
+        if len(parts[-1]) == 2:
+            # Check if the second-to-last part is a generic TLD
+            generic_tlds = ["com", "net", "org", "edu", "gov", "mil", "co"]
+            if parts[-2] in generic_tlds:
+                # If it is, return the last three parts
+                return ".".join(parts[-3:])
+            else:
+                # Otherwise, return the last two parts (country code TLD)
+                return ".".join(parts[-2:])
+        else:
+            # Standard case, return the last two parts (generic TLD)
+            return ".".join(parts[-2:])
+
 
 # Function to remove special characters
 def remove_special_chars(domain_name):
-  """Removes special characters from a domain name."""
-  return re.sub(r'[^a-zA-Z0-9.-]', '', domain_name)
+    """Removes special characters from a domain name."""
+    return re.sub(r"[^a-zA-Z0-9.-]", "", domain_name)
+
 
 def tld(fqdn):
-    output=extract_domain(remove_special_chars(fqdn))
+    output = extract_domain(remove_special_chars(fqdn))
     return output
+
 
 def get_homepage(domain):
     """Tries different URLs to get the homepage of a domain."""
@@ -60,15 +121,17 @@ def get_homepage(domain):
         f"https://{domain}",
         f"http://{domain}",
         f"https://www.{domain}",
-        f"http://www.{domain}"
+        f"http://www.{domain}",
     ]
 
     ua = UserAgent()
-    headers = {'User-Agent': ua.chrome}  # Set Chrome User-Agent
+    headers = {"User-Agent": ua.chrome}  # Set Chrome User-Agent
+
+    ctx = create_urllib3_context()
 
     for url in urls:
         try:
-            response = requests.get(url,  headers=headers, timeout=3)
+            response = requests.get(url, headers=headers, timeout=3)
             response.raise_for_status()  # Raise an exception for bad status codes
             return response
         except requests.exceptions.RequestException as e:
@@ -78,6 +141,7 @@ def get_homepage(domain):
     print(f"Could not find a valid homepage for {domain}")
     return None
 
+
 def extract_javascript_hosts(response):
     """Extracts JavaScript hosts from a web page, including any HTTP URLs within <script> tags."""
     soup = BeautifulSoup(response.content, "html.parser")
@@ -86,8 +150,8 @@ def extract_javascript_hosts(response):
     domains = []
     for script in scripts:
         # Check for 'src' attribute (for external JavaScript files)
-        if script.get('src'):
-            url = script['src']
+        if script.get("src"):
+            url = script["src"]
             hostname = urlparse(url).hostname
             if hostname:
                 hosts.append(hostname)
@@ -101,10 +165,10 @@ def extract_javascript_hosts(response):
                     for url in urls:
                         hostname = urlparse(url[0]).hostname
                         if hostname:
-                            if ("." in hostname):
+                            if "." in hostname:
                                 hosts.append(hostname)
                                 domains.append(tld(hostname))
-    return (hosts,domains)
+    return (hosts, domains)
 
 
 if __name__ == "__main__":
@@ -113,14 +177,30 @@ if __name__ == "__main__":
         sys.exit(1)
 
     domain = sys.argv[1]
+    not_after_date = ""
+    issuer_organization = ""
 
     response = get_homepage(domain)
-    #print(response.content )
+    certinfo = get_certificate_details(domain)
+    if isinstance(certinfo, dict):
+        not_after_date = convert_to_YYYY_MM_DD(certinfo["notAfter"])
+        issuer_organization = certinfo["issuer"][1][0][1]
+    # print(response.content )
     if response:
         (javascript_hosts, javascript_domains) = extract_javascript_hosts(response)
         unique_domains = set(javascript_domains)
         unique_hosts = set(javascript_hosts)
         print("Domain UniqueHosts,UniqueDomains")
-        print(domain+" "+str(len(unique_hosts))+","+str( len(unique_domains)))
+        print(
+            domain
+            + ","
+            + str(len(unique_hosts))
+            + ","
+            + str(len(unique_domains))
+            + ","
+            + not_after_date
+            + ","
+            + issuer_organization
+        )
         for host in unique_hosts:
-            print(host+" "+tld(host))
+            print(host + " " + tld(host))

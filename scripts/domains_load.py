@@ -32,7 +32,7 @@ i=0
 # Insert data into the database
 for index, row in df.iterrows():
     i=i+1
-    sql = "INSERT INTO rankdb (rank, domain, pagerank) VALUES (%s, %s, %s)"
+    sql = "INSERT IGNORE INTO rankdb (rank, domain, pagerank) VALUES (%s, %s, %s)"
     values = (row['rank'], row['domain'], row['pagerank'])
     cursor.execute(sql, values)
     if i > 100000:
