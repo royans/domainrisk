@@ -3,7 +3,7 @@ import mysql.connector
 import os
 
 # CSV file path
-csv_file = 'top10milliondomains.csv'
+csv_file = 'top10000domains.csv'
 
 # Read the CSV file into a Pandas DataFrame
 df = pd.read_csv(csv_file)
