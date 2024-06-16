@@ -2,6 +2,7 @@
 
 # Domain Risk counts total number of unique hosts in a webpage - higher is worse - ideal is under 5.
 # Royans K Tharakan - 2024 May 26
+# Cert info extractor code from : https://github.com/qerty2006/domain_ssl_cert
 
 import requests
 import sys
