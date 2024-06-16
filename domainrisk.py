@@ -17,6 +17,7 @@ from urllib3.util.ssl_ import create_urllib3_context
 
 # Function to remove special characters
 
+
 def remove_special_chars(domain_name):
     """Removes special characters from a domain name."""
     return re.sub(r"[^a-zA-Z0-9.-]", "", domain_name)
@@ -171,7 +172,9 @@ def extract_javascript_hosts(response):
                                 domains.append(tld(hostname))
     return (hosts, domains)
 
-def getDomainRisk(domain_name):
+
+def getDomainRisk(domain):
+    domain_data = {}
     not_after_date = ""
     issuer_organization = ""
     response = get_homepage(domain)
@@ -184,8 +187,16 @@ def getDomainRisk(domain_name):
         (javascript_hosts, javascript_domains) = extract_javascript_hosts(response)
         unique_domains = set(javascript_domains)
         unique_hosts = set(javascript_hosts)
-        return (domain,unique_hosts,unique_domains,not_after_date,issuer_organization)
-    return;  
+
+        domain_data = {
+            "domain": domain,
+            "unique_hosts": unique_hosts,
+            "unique_domains": unique_domains,
+            "not_after_date": not_after_date,
+            "issuer_organization": issuer_organization,
+        }
+    return domain_data
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -193,23 +204,24 @@ if __name__ == "__main__":
         sys.exit(1)
 
     domain = sys.argv[1]
-    (_domain,unique_hosts,unique_domains,not_after_date,issuer_organization) = getDomainRisk(domain)
-    
-    if _domain:
+    domain_data = getDomainRisk(domain)
+    #    (_domain, unique_hosts, unique_domains, not_after_date, issuer_organization) = (
+    #        getDomainRisk(domain)
+    #    )
+
+    if 'unique_hosts' in domain_data:
+        print(domain_data)
         print("Domain UniqueHosts,UniqueDomains,Cert expiry, Cert issuer")
         print(
             domain
             + ","
-            + str(len(unique_hosts))
+            + str(len(domain_data['unique_hosts']))
             + ","
-            + str(len(unique_domains))
+            + str(len(domain_data['unique_domains']))
             + ","
-            + not_after_date
+            + domain_data['not_after_date']
             + ","
-            + issuer_organization
+            + domain_data['issuer_organization']
         )
-        for host in unique_hosts:
+        for host in domain_data['unique_hosts']:
             print(host + " " + tld(host))
-
-      
-
