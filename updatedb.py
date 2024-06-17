@@ -166,7 +166,7 @@ def update_top_domains(limit=100):
 
         # Prepared statement for efficient retrieval
         #query = "SELECT domain, rank FROM rankdb where cert_issuer is null ORDER BY last_checked, rank ASC LIMIT %s"
-        query = "SELECT domain, rank FROM rankdb where last_checked is null ORDER BY rank ASC LIMIT %s"
+        query = "SELECT domain, rank FROM rankdb where last_checked is null and ignorerow=false ORDER BY rank ASC LIMIT %s"
         cursor.execute(query, (limit,))
 
         # Fetch all results as a list of tuples

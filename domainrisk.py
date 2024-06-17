@@ -15,9 +15,35 @@ import socket
 from datetime import datetime
 from urllib3.util.ssl_ import create_urllib3_context
 
+import errno
+import os
+import signal
+import functools
+
+class TimeoutError(Exception):
+    pass
+
+def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
+    def decorator(func):
+        def _handle_timeout(signum, frame):
+            raise TimeoutError(error_message)
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.alarm(seconds)
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+            return result
+
+        return wrapper
+
+    return decorator
+
+
 # Function to remove special characters
-
-
 def remove_special_chars(domain_name):
     """Removes special characters from a domain name."""
     return re.sub(r"[^a-zA-Z0-9.-]", "", domain_name)
@@ -143,6 +169,9 @@ def get_homepage(domain):
     print(f"Could not find a valid homepage for {domain}")
     return None
 
+@timeout(2)
+def re_findall(regex, content):
+    return re.findall(regex, content)
 
 def extract_javascript_hosts(response):
     """Extracts JavaScript hosts from a web page, including any HTTP URLs within <script> tags."""
@@ -163,20 +192,27 @@ def extract_javascript_hosts(response):
                 if isinstance(content, str):
                     # Use regex to find URLs in the script content
                     regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>\"']+|\(([^\s()<>\"']+|(\([^\s()<>\"']+\)))*\))+(?:\(([^\s()<>\"']+|(\([^\s()<>\"']+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
-                    urls = re.findall(regex, content)
+                    urls = None
+                    try: 
+                        urls = re_findall(regex, content)
+                    except:
+                        urls = []
                     for url in urls:
-                        hostname = urlparse(url[0]).hostname
-                        if hostname:
-                            if "." in hostname:
-                                hosts.append(hostname)
-                                domains.append(tld(hostname))
+                        try:
+                            hostname = urlparse(url[0]).hostname
+                            if hostname:
+                                if "." in hostname:
+                                    hosts.append(hostname)
+                                    domains.append(tld(hostname))
+                        except:
+                            urls = None
     return (hosts, domains)
 
 
 def getDomainRisk(domain):
     domain_data = {}
-    not_after_date = ""
-    issuer_organization = ""
+    not_after_date = None
+    issuer_organization = None
     response = get_homepage(domain)
     certinfo = get_certificate_details(domain)
     if isinstance(certinfo, dict):
@@ -189,7 +225,6 @@ def getDomainRisk(domain):
         (javascript_hosts, javascript_domains) = extract_javascript_hosts(response)
         unique_domains = set(javascript_domains)
         unique_hosts = set(javascript_hosts)
-
         domain_data = {
             "domain": domain,
             "unique_hosts": unique_hosts,
