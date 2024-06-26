@@ -169,7 +169,7 @@ def get_homepage(domain):
             response.raise_for_status()  # Raise an exception for bad status codes
             return response
         except requests.exceptions.RequestException as e:
-            print(f"Error fetching {url}: {e}")
+            #print(f"Error fetching {url}: {e}")
             continue
 
     print(f"Could not find a valid homepage for {domain}")
@@ -255,7 +255,7 @@ if __name__ == "__main__":
     #    )
 
     if 'unique_hosts' in domain_data:
-        print(domain_data)
+        #print(domain_data)
         print("Domain UniqueHosts,UniqueDomains,Cert expiry, Cert issuer")
         print(
             fixstring(domain)
