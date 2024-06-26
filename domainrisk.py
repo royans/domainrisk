@@ -23,6 +23,12 @@ import functools
 class TimeoutError(Exception):
     pass
 
+def fixstring(name):
+    if name is None:
+        return ""
+    return name
+
+
 def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
     def decorator(func):
         def _handle_timeout(signum, frame):
@@ -120,7 +126,7 @@ def extract_domain(fqdn):
         # Check if the TLD is a two-letter country code
         if len(parts[-1]) == 2:
             # Check if the second-to-last part is a generic TLD
-            generic_tlds = ["com", "net", "org", "edu", "gov", "mil", "co"]
+            generic_tlds = ["com", "net", "org", "edu", "gov", "mil", "co","ac"]
             if parts[-2] in generic_tlds:
                 # If it is, return the last three parts
                 return ".".join(parts[-3:])
@@ -175,7 +181,7 @@ def re_findall(regex, content):
 
 def extract_javascript_hosts(response):
     """Extracts JavaScript hosts from a web page, including any HTTP URLs within <script> tags."""
-    soup = BeautifulSoup(response.content, "html.parser")
+    soup = BeautifulSoup((response.content).lower(), "html.parser")
     scripts = soup.find_all("script")  # Get all <script> tags, regardless of attributes
     hosts = []
     domains = []
@@ -183,29 +189,32 @@ def extract_javascript_hosts(response):
         # Check for 'src' attribute (for external JavaScript files)
         if script.get("src"):
             url = script["src"]
+            #print("--- SCRIPTS : "+url)
             hostname = urlparse(url).hostname
             if hostname:
                 hosts.append(hostname)
+                domains.append(tld(hostname))
         # Check for script content that might contain URLs
         else:
-            for content in script.contents:
-                if isinstance(content, str):
-                    # Use regex to find URLs in the script content
-                    regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>\"']+|\(([^\s()<>\"']+|(\([^\s()<>\"']+\)))*\))+(?:\(([^\s()<>\"']+|(\([^\s()<>\"']+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
-                    urls = None
-                    try: 
-                        urls = re_findall(regex, content)
-                    except:
-                        urls = []
-                    for url in urls:
-                        try:
-                            hostname = urlparse(url[0]).hostname
-                            if hostname:
-                                if "." in hostname:
-                                    hosts.append(hostname)
-                                    domains.append(tld(hostname))
+            if ( 1 == 2):
+                for content in script.contents:
+                    if isinstance(content, str):
+                        # Use regex to find URLs in the script content
+                        regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>\"']+|\(([^\s()<>\"']+|(\([^\s()<>\"']+\)))*\))+(?:\(([^\s()<>\"']+|(\([^\s()<>\"']+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
+                        urls = None
+                        try: 
+                            urls = re_findall(regex, content)
                         except:
-                            urls = None
+                            urls = []
+                        for url in urls:
+                            try:
+                                hostname = urlparse(url[0]).hostname
+                                if hostname:
+                                    if "." in hostname:
+                                        hosts.append(remove_special_chars(hostname))
+                                        domains.append(tld(hostname))
+                            except:
+                                urls = None
     return (hosts, domains)
 
 
@@ -249,15 +258,15 @@ if __name__ == "__main__":
         print(domain_data)
         print("Domain UniqueHosts,UniqueDomains,Cert expiry, Cert issuer")
         print(
-            domain
+            fixstring(domain)
             + ","
-            + str(len(domain_data['unique_hosts']))
+            + str(len(fixstring(domain_data['unique_hosts'])))
             + ","
-            + str(len(domain_data['unique_domains']))
+            + str(len(fixstring(domain_data['unique_domains'])))
             + ","
-            + domain_data['not_after_date']
+            + fixstring(domain_data['not_after_date'])
             + ","
-            + domain_data['issuer_organization']
+            + fixstring(domain_data['issuer_organization'])
         )
         for host in domain_data['unique_hosts']:
             print(host + " " + tld(host))

@@ -1,6 +1,7 @@
 import mysql.connector
 import re
 import os
+import sys
 import subprocess
 from datetime import datetime
 import domainrisk
@@ -149,7 +150,7 @@ def update(domain):
     else:
         updatePageRankFailTimestamp(domain)
 
-def update_top_domains(limit=100):
+def update_top_domains(limit=100,prime=1):
     """
     Retrieves the top `limit` domains from the `rankdb` table, ordered by rank.
 
@@ -166,8 +167,9 @@ def update_top_domains(limit=100):
 
         # Prepared statement for efficient retrieval
         #query = "SELECT domain, rank FROM rankdb where cert_issuer is null ORDER BY last_checked, rank ASC LIMIT %s"
-        query = "SELECT domain, rank FROM rankdb where last_checked is null and ignorerow=false ORDER BY rank ASC LIMIT %s"
-        cursor.execute(query, (limit,))
+        #query = "SELECT domain, rank FROM rankdb where last_checked is null and ignorerow=false ORDER BY rank ASC LIMIT %s"
+        query = "SELECT domain, rank FROM rankdb where last_checked is null and ignorerow=false and round(rank/%s)*%s=rank ORDER BY rank ASC LIMIT %s"
+        cursor.execute(query, (prime,prime,limit,))
 
         # Fetch all results as a list of tuples
         top_domains = cursor.fetchall()
@@ -187,10 +189,9 @@ def update_top_domains(limit=100):
 
 if __name__ == "__main__":
     # import sys
-    # if len(sys.argv) != 2:
-    #  print("Usage: python script.py <domain_name>")
-    #  sys.exit(1)
-
-    # domain_name = sys.argv[1]
+    if len(sys.argv) != 2:
+        prime = 1
+    else:
+        prime = sys.argv[1]
     #update("msn.com")
-    update_top_domains(10000)
+    update_top_domains(10000,prime)
