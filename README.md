@@ -8,65 +8,40 @@ DomainRisk does a simple check - it checks how many unique hostnames are include
 
 **Usage** : ./batch.sh "list of domain names"
 <pre>
-./batch.sh google.com facebook.com slashdot.org techmeme.com cnn.com bedbathandbeyond.com xda-developers.com mlb.com
-Format: Domain UniqueHosts,UniqueDomains
-google.com 4,2
-facebook.com 2,2
-slashdot.org 6,4
-techmeme.com 2,2
-cnn.com 76,44
-bedbathandbeyond.com 26,18
-xda-developers.com 14,10
-mlb.com 60,37
+./batch.sh google.com facebook.com kark.com fox16.com fox40.com cbs17.com 
+./batch.sh google.com facebook.com kark.com fox16.com fox40.com cbs17.com 
+Domain UniqueHosts,UniqueDomains,CertExpiry,CertProvider
+google.com,0,0,2024/08/26,Google Trust Services
+facebook.com,0,0,2024/07/04,DigiCert Inc
+kark.com,19,18,2024/07/30,Let's Encrypt
+fox16.com,18,17,2024/07/30,Let's Encrypt
+fox40.com,18,17,2024/07/30,Let's Encrypt
+cbs17.com,17,16,2024/07/30,Let's Encrypt
 </pre>
 
 **Usage** : python3 domainrisk.py "domainname.com"
 <pre>
-$ python3 domainrisk.py "cnn.com" 
-Domain Namne - Unique hosts - Unique domains
-cnn.com 76,44
-arkoselabs.com
-ntv.io
-optimizely.com
-publicgood.com
-youtube.com
-turnerapps.com
-axios-http.com
-s-onetag.com
-ngtv.io
-pledge.to
-rezync.com
-google.com
-identityservices.io
-amazonaws.com
-dianomi.com
-twitter.com
-adnxs.com
-aswpsdkus.com
-handlebarsjs.com
-rubiconproject.com
-turner.com
-cookielaw.org
-spot.im
-datadoghq-browser-agent.com
-cnn.com
-cloudfront.net
-facebook.com
-github.com
-tremorhub.com
-spotxchange.com
-npms.io
-schema.org
-datad0g-browser-agent.com
-cnn.io
-chartbeat.com
-jsrdn.com
-bounceexchange.com
-rlcdn.com
-git.io
-fwmrm.net
-pubmatic.com
-wbdprivacy.com
-w3.org
-instagram.com
+$ python3 domainrisk.py fox16.com
+Domain UniqueHosts,UniqueDomains,Cert expiry, Cert issuer
+fox16.com,18,17,2024/07/30,Let's Encrypt
+
+List of hosts this site connects to using script:
+cdn.cookielaw.org
+htlbid.com
+cdn.bestreviews.com
+static.chartbeat.com
+segment.psg.nexstardigital.net
+cdn.cityspark.com
+blue.fox16.com
+assets.adobedtm.com
+nxst.megpxs.com
+get.civicscience.com
+imasdk.googleapis.com
+cdn.onesignal.com
+www.fox16.com
+d3plfjw9uod7ab.cloudfront.net
+ak.sail-horizon.com
+stats.wp.com
+3a6b0682-f3e1-4576-a706-5eb4101b9cc3.edge.permutive.app
+cdn.confiant-integrations.net
 </pre>
