@@ -2,7 +2,7 @@
 
 **DomainRisk - signals to understand how mature a website may be**
 
-Supply chain attacks are the new normal. Every site which includes scripts/assets from another site compounds the risk because it not only has to secure its own infrastructure, it also has to track and ensure that its suppliers are secure as well. And if its suppliers are using other services (like CDN) even those need to be protected. 
+Supply chain attacks are the new normal. Every site which includes scripts/assets from another site compounds the risk because it not only has to secure its own infrastructure, it also has to track and ensure that its suppliers are secure as well. And if its suppliers are using other services (like CDN) even those need to be protected. You can read more about the origin of this script by reading my blog post [here](https://royans.net/security/supplychain/2024/05/28/DomainRisk-Measuring-risk-from-3rd-party-libraries.html).
 
 DomainRisk does a simple check - it checks how many unique hostnames are included in the script section of the top level website and counts them out. Most of the very mature sites, which care about security should generally have less than 5 to 6 unique hosts. But unfortunately, some have dozens.
 
