@@ -149,6 +149,7 @@ def tld(fqdn):
     return output
 
 
+@timeout(3)
 def get_homepage(domain):
     """Tries different URLs to get the homepage of a domain."""
     urls = [

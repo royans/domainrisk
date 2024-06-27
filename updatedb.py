@@ -126,7 +126,11 @@ def updateDomainPage(domain, tohost, todomain):
 # Process the script output
 def update(domain):
     # //(_domain,unique_hosts,unique_domains,not_after_date,issuer_organization) = domainrisk.getDomainRisk(domain)
-    domain_data = domainrisk.getDomainRisk(domain)
+    domain_data = {}
+    try:
+        domain_data = domainrisk.getDomainRisk(domain)
+    except:
+        domain_data = {}
 
     if "domain" in domain_data:
         cnx = mysql.connector.connect(**config)
@@ -168,7 +172,7 @@ def update_top_domains(limit=100,prime=1):
         # Prepared statement for efficient retrieval
         #query = "SELECT domain, rank FROM rankdb where cert_issuer is null ORDER BY last_checked, rank ASC LIMIT %s"
         #query = "SELECT domain, rank FROM rankdb where last_checked is null and ignorerow=false ORDER BY rank ASC LIMIT %s"
-        query = "SELECT domain, rank FROM rankdb where last_checked is null and ignorerow=false and round(rank/%s)*%s=rank ORDER BY rank ASC LIMIT %s"
+        query = "SELECT domain, rank FROM rankdb where ((last_checked is null or last_checked < '2024-06-26') and last_updated < '2024-06-26') and ignorerow=0 and round(rank/%s)*%s=rank ORDER BY rank ASC LIMIT %s"
         cursor.execute(query, (prime,prime,limit,))
 
         # Fetch all results as a list of tuples
