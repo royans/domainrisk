@@ -170,8 +170,6 @@ def update_top_domains(limit=100,prime=1):
         cursor = cnx.cursor()
 
         # Prepared statement for efficient retrieval
-        #query = "SELECT domain, rank FROM rankdb where cert_issuer is null ORDER BY last_checked, rank ASC LIMIT %s"
-        #query = "SELECT domain, rank FROM rankdb where last_checked is null and ignorerow=false ORDER BY rank ASC LIMIT %s"
         query = "SELECT domain, rank FROM rankdb where ((last_checked is null or last_checked < '2024-06-26') and last_updated < '2024-06-26') and ignorerow=0 and round(rank/%s)*%s=rank ORDER BY rank ASC LIMIT %s"
         cursor.execute(query, (prime,prime,limit,))
 
@@ -190,12 +188,9 @@ def update_top_domains(limit=100,prime=1):
         if cnx:
             cnx.close()
 
-
 if __name__ == "__main__":
-    # import sys
     if len(sys.argv) != 2:
         prime = 1
     else:
         prime = sys.argv[1]
-    #update("msn.com")
     update_top_domains(10000,prime)

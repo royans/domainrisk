@@ -269,5 +269,6 @@ if __name__ == "__main__":
             + ","
             + fixstring(domain_data['issuer_organization'])
         )
+        print("\nList of hosts this site connects to using script:")
         for host in domain_data['unique_hosts']:
-            print(host + " " + tld(host))
+            print(host)

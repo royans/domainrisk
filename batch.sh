@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Domain UniqueHosts,UniqueDomains"
+echo "Domain UniqueHosts,UniqueDomains,CertExpiry,CertProvider"
 if [ -f $1 ]
 then
 	for host in `cat $1`
