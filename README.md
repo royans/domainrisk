@@ -9,7 +9,6 @@ DomainRisk does a simple check - it checks how many unique hostnames are include
 **Usage** : ./batch.sh "list of domain names"
 <pre>
 ./batch.sh google.com facebook.com kark.com fox16.com fox40.com cbs17.com 
-./batch.sh google.com facebook.com kark.com fox16.com fox40.com cbs17.com 
 Domain UniqueHosts,UniqueDomains,CertExpiry,CertProvider
 google.com,0,0,2024/08/26,Google Trust Services
 facebook.com,0,0,2024/07/04,DigiCert Inc
