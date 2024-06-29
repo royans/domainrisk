@@ -38,19 +38,19 @@ def convert_date_to_datetime(date_string):
 
 
 # Function to insert data into the database
-def updatePageRankFailTimestamp(domain):
+def updatePageRankFailTimestamp(rankdb_id):
     try:
         # Connect to the database
         cnx = mysql.connector.connect(**config)
         cursor = cnx.cursor()
 
         # Prepare the insert query
-        add_domain = "update rankdb set last_checked=CURDATE() where domain = %s"
+        add_domain = "update rankdb set last_checked=CURDATE() where id = %s"
 
         # Insert the data 
         # convert_date_to_datetime
         cursor.execute(
-            add_domain, (domain,)
+            add_domain, (rankdb_id,)
         )
 
         # Commit the changes
@@ -67,21 +67,64 @@ def updatePageRankFailTimestamp(domain):
 
 
 # Function to insert data into the database
-def updatePageRank(domain, cert_expiry, cert_issuer):
+def updateIndexPage(rankdb_id, domain_data,index_page_exists):
+    try:
+        title=domain_data["title"]
+        headers=domain_data["headers"][0:1000]
+        contents=""
+        content_size=len(domain_data["contents"])
+        cert_expiry=domain_data["not_after_date"]
+        cert_issuer=domain_data["issuer_organization"]
+        # Connect to the database
+        cnx = mysql.connector.connect(**config)
+        cursor = cnx.cursor()
+
+        #print("test 5 - index page")
+
+        # Prepare the insert query
+        if index_page_exists:
+            update_domain = "update index_page set title=%s, content_size=%s, headers=%s, cert_issuer=%s, cert_expiry=%s, last_updated=CURDATE() where rankdb_id = %s"
+            cursor.execute(
+                update_domain, (title,content_size,headers,cert_issuer,cert_expiry,rankdb_id,)
+            )
+        else:
+            add_domain = "insert into index_page (title, content_size, headers, cert_issuer, cert_expiry, last_updated, rankdb_id) values (%s,%s,%s,%s,%s,CURDATE(),%s) "
+            cursor.execute(
+                add_domain, (title,content_size,headers,cert_issuer,cert_expiry,rankdb_id,)
+            )
+
+        #print("test 5.1")
+        # Commit the changes
+        cnx.commit()
+
+        # Close the cursor and connection
+        cursor.close()
+        cnx.close()
+
+        # print(f"Data inserted for domain: {domain}")
+
+    except mysql.connector.Error as err:
+        print(f"Error inserting data: {err}")
+
+# Function to insert data into the database
+def updatePageRank(rankdb_id):
     try:
         # Connect to the database
         cnx = mysql.connector.connect(**config)
         cursor = cnx.cursor()
 
+        #print("test 5")
+
         # Prepare the insert query
-        add_domain = "update rankdb set cert_expiry=%s, cert_issuer=%s,last_checked=CURDATE(), last_updated=CURDATE() where domain = %s"
+        add_domain = "update rankdb set last_checked=CURDATE(), last_updated=CURDATE() where id = %s"
 
         # Insert the data 
         # convert_date_to_datetime
         cursor.execute(
-            add_domain, ((cert_expiry), cert_issuer, domain)
+            add_domain, (rankdb_id,)
         )
 
+        #print("test 5.1")
         # Commit the changes
         cnx.commit()
 
@@ -96,19 +139,21 @@ def updatePageRank(domain, cert_expiry, cert_issuer):
 
 
 # Function to insert data into the database
-def updateDomainPage(domain, tohost, todomain):
+def updateDomainPage(rankdb_id, tohost, todomain):
     try:
         # Connect to the database
         cnx = mysql.connector.connect(**config)
         cursor = cnx.cursor()
 
+        #print("test 4")
         # Prepare the insert query
         add_domain = (
-            "INSERT INTO domainpage (domain, tohost, todomain) VALUES (%s, %s, %s)"
+            "INSERT INTO domainpage (rankdb_id, tohost, todomain) VALUES (%s, %s, %s)"
         )
 
         # Insert the data
-        cursor.execute(add_domain, (domain, tohost, todomain))
+        cursor.execute(add_domain, (rankdb_id, tohost, todomain))
+        #print("test 4.1")
 
         # Commit the changes
         cnx.commit()
@@ -124,7 +169,7 @@ def updateDomainPage(domain, tohost, todomain):
 
 
 # Process the script output
-def update(domain):
+def update(rankdb_id,domain,index_page_exists):
     # //(_domain,unique_hosts,unique_domains,not_after_date,issuer_organization) = domainrisk.getDomainRisk(domain)
     domain_data = {}
     try:
@@ -135,24 +180,34 @@ def update(domain):
     if "domain" in domain_data:
         cnx = mysql.connector.connect(**config)
         cursor = cnx.cursor()
-        delete_domain = "DELETE FROM domainpage where domain = %s"
-        cursor.execute(delete_domain, (domain,))
+        delete_domain = "DELETE FROM domainpage where rankdb_id = %s"
+        #print(rankdb_id)
+
+        cursor.execute(delete_domain, (rankdb_id,))
         cnx.commit()
         cnx.close()
 
         # Process the remaining lines
         for tohost in domain_data["unique_hosts"]:
             todomain = domainrisk.extract_domain(tohost)
-            updateDomainPage(domain, tohost, todomain)
+            updateDomainPage(rankdb_id, tohost, todomain)
 
         # updatePageRank(domain, cert_expiry, cert_issuer):
         updatePageRank(
-            domain,
-            (domain_data["not_after_date"]),
-            domain_data["issuer_organization"],
+            rankdb_id
         )
+
+        if 'not_after_date' in domain_data:
+            updateIndexPage(
+                rankdb_id,
+                domain_data,
+                index_page_exists
+            )
+        else:
+            print(domain_data)
+
     else:
-        updatePageRankFailTimestamp(domain)
+        updatePageRankFailTimestamp(rankdb_id)
 
 def update_top_domains(limit=100,prime=1):
     """
@@ -170,16 +225,17 @@ def update_top_domains(limit=100,prime=1):
         cursor = cnx.cursor()
 
         # Prepared statement for efficient retrieval
-        query = "SELECT domain, rank FROM rankdb where ((last_checked is null or last_checked < '2024-06-26') and last_updated < '2024-06-26') and ignorerow=0 and round(rank/%s)*%s=rank ORDER BY rank ASC LIMIT %s"
+        query = "SELECT id, domain, rank, if(index_page.rankdb_id is null,false, true) index_page_exists FROM rankdb left join index_page on index_page.rankdb_id=rankdb.id where (rankdb.last_checked is null and rankdb.last_updated is null) and retry_attempt=0 and round(rank/%s)*%s=rank ORDER BY rank ASC LIMIT %s"
         cursor.execute(query, (prime,prime,limit,))
+
 
         # Fetch all results as a list of tuples
         top_domains = cursor.fetchall()
 
         # Print the domain and rank for each entry
-        for domain, rank in top_domains:
+        for rankdb_id, domain, rank, index_page_exists in top_domains:
             print(f"Updating: {domain}, Rank: {rank}")
-            update(domain)
+            update(rankdb_id,domain, index_page_exists)
 
     except mysql.connector.Error as err:
         print(f"Error retrieving top domains: {err}")

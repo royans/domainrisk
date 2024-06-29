@@ -1,26 +1,38 @@
+CREATE TABLE `domainpage` (
+  `rankdb_id` bigint(20) NOT NULL,
+  `tohost` char(200) NOT NULL,
+  `todomain` char(200) NOT NULL,
+  `last_updated` date NOT NULL DEFAULT current_timestamp(),
+  KEY `todomain` (`todomain`) USING BTREE,
+  KEY `tohost` (`tohost`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
 
 CREATE TABLE `rankdb` (
   `rank` int(11) NOT NULL,
-  `domain` text NOT NULL,
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `domain` char(200) NOT NULL,
   `pagerank` float NOT NULL,
-  `title` text DEFAULT NULL,
-  `last_updated` date NOT NULL DEFAULT current_timestamp(),
-  `cert_expiry` date DEFAULT NULL,
-  `cert_issuer` varchar(100) DEFAULT NULL,
+  `created_date` date NOT NULL DEFAULT current_timestamp(),
   `last_checked` date DEFAULT NULL,
-  PRIMARY KEY (`domain`(200)),
-  KEY `cert_issuer` (`cert_issuer`),
+  `retry_attempt` tinyint(3) NOT NULL DEFAULT 0,
+  `last_updated` date DEFAULT NULL,
+  UNIQUE KEY `id` (`id`),
   KEY `rank` (`rank`),
-  KEY `rank_2` (`rank`),
-  KEY `last_checked_index` (`last_checked`)
+  KEY `last_checked_index` (`last_checked`),
+  KEY `ignorerow` (`retry_attempt`),
+  KEY `last_updated` (`last_updated`)
+) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+CREATE TABLE `index_page` (
+  `rankdb_id` bigint(20) NOT NULL,
+  `contents` blob DEFAULT NULL,
+  `content_size` int(11) DEFAULT NULL,
+  `headers` varchar(1000) DEFAULT NULL,
+  `cert_issuer` char(100) DEFAULT NULL,
+  `cert_expiry` datetime DEFAULT NULL,
+  `last_updated` datetime NOT NULL DEFAULT current_timestamp(),
+  `title` char(255) DEFAULT NULL,
+  PRIMARY KEY (`rankdb_id`),
+  KEY `cert_issuer` (`cert_issuer`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
 
-
-CREATE TABLE `domainpage` (
-  `domain` text NOT NULL,
-  `tohost` text NOT NULL,
-  `todomain` text NOT NULL,
-  `updated` date NOT NULL DEFAULT current_timestamp(),
-  KEY `tohost` (`tohost`(768)),
-  KEY `todomain` (`todomain`(768))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

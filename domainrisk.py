@@ -6,6 +6,7 @@
 
 import requests
 import sys
+import json
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from fake_useragent import UserAgent
@@ -173,7 +174,7 @@ def get_homepage(domain):
             #print(f"Error fetching {url}: {e}")
             continue
 
-    print(f"Could not find a valid homepage for {domain}")
+    print(f" - Could not find a valid homepage for {domain}")
     return None
 
 @timeout(2)
@@ -186,6 +187,9 @@ def extract_javascript_hosts(response):
     scripts = soup.find_all("script")  # Get all <script> tags, regardless of attributes
     hosts = []
     domains = []
+    title = soup.title.text.strip() if soup.title else None
+    headers = dict(response.headers)
+
     for script in scripts:
         # Check for 'src' attribute (for external JavaScript files)
         if script.get("src"):
@@ -216,7 +220,7 @@ def extract_javascript_hosts(response):
                                         domains.append(tld(hostname))
                             except:
                                 urls = None
-    return (hosts, domains)
+    return (headers, response.content, title, hosts, domains)
 
 
 def getDomainRisk(domain):
@@ -232,11 +236,14 @@ def getDomainRisk(domain):
                 issuer_organization = inner_tuple[0][1]
                 break
     if response:
-        (javascript_hosts, javascript_domains) = extract_javascript_hosts(response)
+        (headers, content, title, javascript_hosts, javascript_domains) = extract_javascript_hosts(response)
         unique_domains = set(javascript_domains)
         unique_hosts = set(javascript_hosts)
         domain_data = {
             "domain": domain,
+            "headers": json.dumps(headers, indent=2),
+            "contents": content,
+            "title": title,
             "unique_hosts": unique_hosts,
             "unique_domains": unique_domains,
             "not_after_date": not_after_date,
