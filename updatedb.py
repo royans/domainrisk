@@ -5,6 +5,7 @@ import sys
 import subprocess
 from datetime import datetime
 import domainrisk
+import json
 
 # Get database credentials from environment variables
 db_user = os.environ.get("DBUSER")
@@ -17,7 +18,6 @@ config = {
     "host": "localhost",
     "database": "domainrisk",
 }
-
 
 def convert_date_to_datetime(date_string):
     """
@@ -37,6 +37,52 @@ def convert_date_to_datetime(date_string):
         raise ValueError(f"Invalid date format: {date_string}")
 
 
+def update_kv(rankdb_id,k,v):
+    try:
+        #print(rankdb_id)        
+        #print("Checking "+' '+k+" -- "+v)
+        # Connect to the database
+        cnx = mysql.connector.connect(**config)
+        cursor = cnx.cursor()
+        #print("T 0")
+
+        # Prepare the insert query
+        check_kv = "select row_key, row_value from kv_store where rankdb_id = %s"
+        #print("T 0.1")
+        cursor.execute(
+            check_kv, (rankdb_id,)
+        )
+        #print("T 0.2")
+        data = cursor.fetchall()
+        found = False
+
+        #print("T 1")
+        # Print the domain and rank for each entry
+        for row_key, row_value in data:
+            #print("T 2")
+            if row_key == k and row_value == v:
+                found = True
+                continue
+            if row_key == k:
+                if row_value != v:
+                    update_kv = "update kv_store set row_value=%s where rankdb_id=%d"
+                    cursor.execute(update_kv,(k, v[0:100],rankdb_id))
+                    cnx.commit()
+                    found=True
+        #print("T 3")
+        if found == False:
+            #print ("Not found... attempting insert")
+            insert_kv = "insert into kv_store (row_key,row_value, rankdb_id) values (%s,%s,%s)"
+            cursor.execute(insert_kv,(k,v[0:100],rankdb_id))
+            cnx.commit()
+            #print("T 3.1")
+        cursor.close()
+        cnx.close()
+
+    except ValueError as e:
+        cursor.close()
+        cnx.close()
+        
 # Function to insert data into the database
 def updatePageRankFailTimestamp(rankdb_id):
     try:
@@ -70,7 +116,7 @@ def updatePageRankFailTimestamp(rankdb_id):
 def updateIndexPage(rankdb_id, domain_data,index_page_exists):
     try:
         title=domain_data["title"]
-        headers=domain_data["headers"][0:1000]
+        headers=json.dumps(domain_data["headers"],indent=2)[0:1000]
         contents=""
         content_size=len(domain_data["contents"])
         cert_expiry=domain_data["not_after_date"]
@@ -79,7 +125,45 @@ def updateIndexPage(rankdb_id, domain_data,index_page_exists):
         cnx = mysql.connector.connect(**config)
         cursor = cnx.cursor()
 
+
+        # Prepare the insert query
+        check_kv = "select rankdb_id from index_page where rankdb_id = %s limit 1"
+        cursor.execute(
+            check_kv, (rankdb_id,)
+        )
+        data = cursor.fetchall()
+        if len(data)>0:
+            #print("found")
+            index_page_exists = True
+        else:
+            index_page_exists = False
+            #print("not found") 
+            #print(rankdb_id)
+
+
         #print("test 5 - index page")
+
+
+        #print(domain_data["title"])
+
+        if 'Server' in domain_data["headers"]:
+            #print("Reached Server "+domain_data["headers"]["Server"])
+            update_kv(rankdb_id,"Server",domain_data["headers"]["Server"])
+        else:
+            if 'server' in domain_data["headers"]:
+                update_kv(rankdb_id,"Server",domain_data["headers"]["server"])
+
+        if 'Server' in domain_data["headers"]:
+            update_kv(rankdb_id,"Server",domain_data["headers"]["Server"])
+
+        if title != None:
+            update_kv(rankdb_id,"title",title)
+
+        if cert_issuer != None:
+            update_kv(rankdb_id,"crt_issuer",cert_issuer)
+
+        if cert_expiry != None:
+            update_kv(rankdb_id,"crt_expiry",cert_expiry)
 
         # Prepare the insert query
         if index_page_exists:
@@ -104,7 +188,7 @@ def updateIndexPage(rankdb_id, domain_data,index_page_exists):
         # print(f"Data inserted for domain: {domain}")
 
     except mysql.connector.Error as err:
-        print(f"Error inserting data: {err}")
+        print(f"Error inserting data (1): {err}")
 
 # Function to insert data into the database
 def updatePageRank(rankdb_id):
@@ -225,7 +309,7 @@ def update_top_domains(limit=100,prime=1):
         cursor = cnx.cursor()
 
         # Prepared statement for efficient retrieval
-        query = "SELECT id, domain, rank, if(index_page.rankdb_id is null,false, true) index_page_exists FROM rankdb left join index_page on index_page.rankdb_id=rankdb.id where (rankdb.last_checked is null and rankdb.last_updated is null) and retry_attempt=0 and round(rank/%s)*%s=rank ORDER BY rank ASC LIMIT %s"
+        query = "SELECT id, domain, rank, if(index_page.rankdb_id is null,false, true) index_page_exists FROM rankdb left join index_page on index_page.rankdb_id=rankdb.id where (rankdb.last_checked < CURRENT_DATE()) and retry_attempt=0 and round(rank/%s)*%s=rank ORDER BY rank ASC LIMIT %s"
         cursor.execute(query, (prime,prime,limit,))
 
 

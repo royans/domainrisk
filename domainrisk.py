@@ -174,7 +174,7 @@ def get_homepage(domain):
             #print(f"Error fetching {url}: {e}")
             continue
 
-    print(f" - Could not find a valid homepage for {domain}")
+    #print(f" - Could not find a valid homepage for {domain}")
     return None
 
 @timeout(2)
@@ -241,7 +241,7 @@ def getDomainRisk(domain):
         unique_hosts = set(javascript_hosts)
         domain_data = {
             "domain": domain,
-            "headers": json.dumps(headers, indent=2),
+            "headers": headers,
             "contents": content,
             "title": title,
             "unique_hosts": unique_hosts,
