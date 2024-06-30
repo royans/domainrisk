@@ -223,13 +223,21 @@ def update_top_domains(limit=100,prime=1):
       A list of tuples containing the domain and its rank.
     """
 
+    global cnx
+
     try:
         # Prepared statement for efficient retrieval
-        query = "SELECT id, domain, rank, max(if(index_page.rankdb_id is null,false, true)) index_page_exists FROM rankdb left join index_page on index_page.rankdb_id=rankdb.id where (rankdb.last_checked is null or rankdb.last_checked < CURRENT_DATE()) and retry_attempt=0 and round(rank/%s)*%s=rank group by 1, 2, 3 ORDER BY rank ASC LIMIT %s"
+        query = "SELECT id, domain, rank, max(if(index_page.rankdb_id is null,false, true)) index_page_exists FROM rankdb left join index_page on index_page.rankdb_id=rankdb.id where (rankdb.last_checked is null or rankdb.last_checked < CURRENT_DATE()) and retry_attempt=0 and last_attempted < DATE_SUB(NOW(), INTERVAL 20 MINUTE) and round(rank/%s)*%s=rank group by 1, 2, 3 ORDER BY rank ASC LIMIT %s"
         cursor.execute(query, (prime,prime,limit,))
 
         # Fetch all results as a list of tuples
         top_domains = cursor.fetchall()
+
+        for rankdb_id, domain, rank, index_page_exists in top_domains:
+            query = "update rankdb set last_attempted=CURRENT_TIMESTAMP() where id=%s"
+            cursor.execute(query, (rankdb_id,))
+
+        cnx.commit()
 
         # Print the domain and rank for each entry
         for rankdb_id, domain, rank, index_page_exists in top_domains:
@@ -248,7 +256,7 @@ if __name__ == "__main__":
 
     db_start()
 
-    update_top_domains(10000,prime)
+    update_top_domains(100,prime)
 
     db_close()
 
