@@ -19,6 +19,20 @@ config = {
     "database": "domainrisk",
 }
 
+cnx = None
+cursor = None
+
+def db_start():
+    global cnx, cursor
+    cnx = mysql.connector.connect(**config)
+    cursor = cnx.cursor()
+
+def db_close():
+    global cnx, cursor
+    cnx.commit()
+    cursor.close()
+    cnx.close()
+
 def convert_date_to_datetime(date_string):
     """
     Converts a date string in dd/mm/yy format to a datetime object.
@@ -39,27 +53,15 @@ def convert_date_to_datetime(date_string):
 
 def update_kv(rankdb_id,k,v):
     try:
-        #print(rankdb_id)        
-        #print("Checking "+' '+k+" -- "+v)
-        # Connect to the database
-        cnx = mysql.connector.connect(**config)
-        cursor = cnx.cursor()
-        #print("T 0")
-
         # Prepare the insert query
         check_kv = "select row_key, row_value from kv_store where rankdb_id = %s"
-        #print("T 0.1")
         cursor.execute(
             check_kv, (rankdb_id,)
         )
-        #print("T 0.2")
         data = cursor.fetchall()
         found = False
 
-        #print("T 1")
-        # Print the domain and rank for each entry
         for row_key, row_value in data:
-            #print("T 2")
             if row_key == k and row_value == v:
                 found = True
                 continue
@@ -67,46 +69,26 @@ def update_kv(rankdb_id,k,v):
                 if row_value != v:
                     update_kv = "update kv_store set row_value=%s where rankdb_id=%d"
                     cursor.execute(update_kv,(k, v[0:100],rankdb_id))
-                    cnx.commit()
+                    #cnx.commit()
                     found=True
-        #print("T 3")
         if found == False:
-            #print ("Not found... attempting insert")
             insert_kv = "insert into kv_store (row_key,row_value, rankdb_id) values (%s,%s,%s)"
             cursor.execute(insert_kv,(k,v[0:100],rankdb_id))
-            cnx.commit()
-            #print("T 3.1")
-        cursor.close()
-        cnx.close()
+            #cnx.commit()
 
     except ValueError as e:
-        cursor.close()
-        cnx.close()
+        print(e)
         
 # Function to insert data into the database
 def updatePageRankFailTimestamp(rankdb_id):
     try:
-        # Connect to the database
-        cnx = mysql.connector.connect(**config)
-        cursor = cnx.cursor()
-
         # Prepare the insert query
         add_domain = "update rankdb set last_checked=CURDATE() where id = %s"
-
-        # Insert the data 
-        # convert_date_to_datetime
         cursor.execute(
             add_domain, (rankdb_id,)
         )
-
         # Commit the changes
         cnx.commit()
-
-        # Close the cursor and connection
-        cursor.close()
-        cnx.close()
-
-        # print(f"Data inserted for domain: {domain}")
 
     except mysql.connector.Error as err:
         print(f"Error inserting data: {err}")
@@ -121,10 +103,6 @@ def updateIndexPage(rankdb_id, domain_data,index_page_exists):
         content_size=len(domain_data["contents"])
         cert_expiry=domain_data["not_after_date"]
         cert_issuer=domain_data["issuer_organization"]
-        # Connect to the database
-        cnx = mysql.connector.connect(**config)
-        cursor = cnx.cursor()
-
 
         # Prepare the insert query
         check_kv = "select rankdb_id from index_page where rankdb_id = %s limit 1"
@@ -133,21 +111,11 @@ def updateIndexPage(rankdb_id, domain_data,index_page_exists):
         )
         data = cursor.fetchall()
         if len(data)>0:
-            #print("found")
             index_page_exists = True
         else:
             index_page_exists = False
-            #print("not found") 
-            #print(rankdb_id)
-
-
-        #print("test 5 - index page")
-
-
-        #print(domain_data["title"])
 
         if 'Server' in domain_data["headers"]:
-            #print("Reached Server "+domain_data["headers"]["Server"])
             update_kv(rankdb_id,"Server",domain_data["headers"]["Server"])
         else:
             if 'server' in domain_data["headers"]:
@@ -176,16 +144,7 @@ def updateIndexPage(rankdb_id, domain_data,index_page_exists):
             cursor.execute(
                 add_domain, (title,content_size,headers,cert_issuer,cert_expiry,rankdb_id,)
             )
-
-        #print("test 5.1")
-        # Commit the changes
         cnx.commit()
-
-        # Close the cursor and connection
-        cursor.close()
-        cnx.close()
-
-        # print(f"Data inserted for domain: {domain}")
 
     except mysql.connector.Error as err:
         print(f"Error inserting data (1): {err}")
@@ -193,31 +152,14 @@ def updateIndexPage(rankdb_id, domain_data,index_page_exists):
 # Function to insert data into the database
 def updatePageRank(rankdb_id):
     try:
-        # Connect to the database
-        cnx = mysql.connector.connect(**config)
-        cursor = cnx.cursor()
-
-        #print("test 5")
-
         # Prepare the insert query
         add_domain = "update rankdb set last_checked=CURDATE(), last_updated=CURDATE() where id = %s"
-
-        # Insert the data 
-        # convert_date_to_datetime
         cursor.execute(
             add_domain, (rankdb_id,)
         )
 
-        #print("test 5.1")
         # Commit the changes
         cnx.commit()
-
-        # Close the cursor and connection
-        cursor.close()
-        cnx.close()
-
-        # print(f"Data inserted for domain: {domain}")
-
     except mysql.connector.Error as err:
         print(f"Error inserting data: {err}")
 
@@ -225,11 +167,6 @@ def updatePageRank(rankdb_id):
 # Function to insert data into the database
 def updateDomainPage(rankdb_id, tohost, todomain):
     try:
-        # Connect to the database
-        cnx = mysql.connector.connect(**config)
-        cursor = cnx.cursor()
-
-        #print("test 4")
         # Prepare the insert query
         add_domain = (
             "INSERT INTO domainpage (rankdb_id, tohost, todomain) VALUES (%s, %s, %s)"
@@ -237,24 +174,14 @@ def updateDomainPage(rankdb_id, tohost, todomain):
 
         # Insert the data
         cursor.execute(add_domain, (rankdb_id, tohost, todomain))
-        #print("test 4.1")
 
         # Commit the changes
-        cnx.commit()
-
-        # Close the cursor and connection
-        cursor.close()
-        cnx.close()
-
-        # print(f"Data inserted for domain: {domain}")
-
+        #cnx.commit()
     except mysql.connector.Error as err:
         print(f"Error inserting data: {err}")
 
-
 # Process the script output
 def update(rankdb_id,domain,index_page_exists):
-    # //(_domain,unique_hosts,unique_domains,not_after_date,issuer_organization) = domainrisk.getDomainRisk(domain)
     domain_data = {}
     try:
         domain_data = domainrisk.getDomainRisk(domain)
@@ -262,21 +189,14 @@ def update(rankdb_id,domain,index_page_exists):
         domain_data = {}
 
     if "domain" in domain_data:
-        cnx = mysql.connector.connect(**config)
-        cursor = cnx.cursor()
         delete_domain = "DELETE FROM domainpage where rankdb_id = %s"
-        #print(rankdb_id)
-
         cursor.execute(delete_domain, (rankdb_id,))
         cnx.commit()
-        cnx.close()
-
         # Process the remaining lines
         for tohost in domain_data["unique_hosts"]:
             todomain = domainrisk.extract_domain(tohost)
             updateDomainPage(rankdb_id, tohost, todomain)
 
-        # updatePageRank(domain, cert_expiry, cert_issuer):
         updatePageRank(
             rankdb_id
         )
@@ -289,7 +209,6 @@ def update(rankdb_id,domain,index_page_exists):
             )
         else:
             print(domain_data)
-
     else:
         updatePageRankFailTimestamp(rankdb_id)
 
@@ -305,13 +224,9 @@ def update_top_domains(limit=100,prime=1):
     """
 
     try:
-        cnx = mysql.connector.connect(**config)
-        cursor = cnx.cursor()
-
         # Prepared statement for efficient retrieval
         query = "SELECT id, domain, rank, if(index_page.rankdb_id is null,false, true) index_page_exists FROM rankdb left join index_page on index_page.rankdb_id=rankdb.id where (rankdb.last_checked < CURRENT_DATE()) and retry_attempt=0 and round(rank/%s)*%s=rank ORDER BY rank ASC LIMIT %s"
         cursor.execute(query, (prime,prime,limit,))
-
 
         # Fetch all results as a list of tuples
         top_domains = cursor.fetchall()
@@ -324,13 +239,18 @@ def update_top_domains(limit=100,prime=1):
     except mysql.connector.Error as err:
         print(f"Error retrieving top domains: {err}")
 
-    finally:
-        if cnx:
-            cnx.close()
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         prime = 1
     else:
         prime = sys.argv[1]
+
+    db_start()
+
     update_top_domains(10000,prime)
+
+    db_close()
+
+
+    

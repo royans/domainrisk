@@ -40,6 +40,8 @@ for index, row in df.iterrows():
         cnx.commit()
         print ("commiting")
 
+sql = "delete from rankdb where domain like '%doubleclick.net%'"
+cursor.execute(sql)
 # Commit changes to the database
 cnx.commit()
 
