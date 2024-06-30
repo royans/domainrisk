@@ -256,7 +256,7 @@ if __name__ == "__main__":
 
     db_start()
 
-    update_top_domains(100,prime)
+    update_top_domains(500,prime)
 
     db_close()
 
