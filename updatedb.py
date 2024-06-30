@@ -225,7 +225,7 @@ def update_top_domains(limit=100,prime=1):
 
     try:
         # Prepared statement for efficient retrieval
-        query = "SELECT id, domain, rank, if(index_page.rankdb_id is null,false, true) index_page_exists FROM rankdb left join index_page on index_page.rankdb_id=rankdb.id where (rankdb.last_checked is null or rankdb.last_checked < CURRENT_DATE()) and retry_attempt=0 and round(rank/%s)*%s=rank ORDER BY rank ASC LIMIT %s"
+        query = "SELECT id, domain, rank, max(if(index_page.rankdb_id is null,false, true)) index_page_exists FROM rankdb left join index_page on index_page.rankdb_id=rankdb.id where (rankdb.last_checked is null or rankdb.last_checked < CURRENT_DATE()) and retry_attempt=0 and round(rank/%s)*%s=rank group by 1, 2, 3 ORDER BY rank ASC LIMIT %s"
         cursor.execute(query, (prime,prime,limit,))
 
         # Fetch all results as a list of tuples
