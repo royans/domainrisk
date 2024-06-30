@@ -1,3 +1,4 @@
+
 CREATE TABLE `domainpage` (
   `rankdb_id` bigint(20) NOT NULL,
   `tohost` char(200) NOT NULL,
@@ -17,12 +18,12 @@ CREATE TABLE `rankdb` (
   `retry_attempt` tinyint(3) NOT NULL DEFAULT 0,
   `last_updated` datetime DEFAULT NULL,
   UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `unique_domain` (`domain`),
   KEY `rank` (`rank`),
   KEY `last_checked_index` (`last_checked`),
   KEY `ignorerow` (`retry_attempt`),
   KEY `last_updated` (`last_updated`)
-) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
+) ENGINE=InnoDB AUTO_INCREMENT=19999 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `index_page` (
   `rankdb_id` bigint(20) NOT NULL,
@@ -37,7 +38,6 @@ CREATE TABLE `index_page` (
   KEY `cert_issuer` (`cert_issuer`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
 CREATE TABLE `kv_store` (
   `rankdb_id` bigint(20) NOT NULL,
   `row_key` char(10) NOT NULL,
@@ -46,3 +46,4 @@ CREATE TABLE `kv_store` (
   KEY `rankdb_id` (`rankdb_id`),
   KEY `row_key` (`row_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
