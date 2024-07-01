@@ -23,6 +23,20 @@ cursor = cnx.cursor()
 i=0
 ii=0
 
+ # Prepare the insert query
+check_last_rank = "select max(rank) from rankdb"
+cursor.execute( check_last_rank)
+data = cursor.fetchall()
+if len(data)>0:
+    skip_rank = data[0][0]
+else:
+    skip_rank = 0
+
+print("====================")
+print(skip_rank)
+print("====================")
+
+
 chunks = pd.read_csv(csv_file, chunksize=1000)
 print("Starting the load...")
 # Insert data into the database
@@ -31,14 +45,15 @@ for chunk in chunks:
   for index, row in chunk.iterrows():
     i=i+1
     ii=ii+1
-    sql = "INSERT IGNORE INTO rankdb (rank, domain, pagerank) VALUES (%s, %s, %s)"
-    values = (row['rank'], row['domain'], row['pagerank'])
-    cursor.execute(sql, values)
-    if i > 10000:
-        i=0
-        cnx.commit()
-        print ("commiting - ")
-        print (ii)
+    if row['rank'] > skip_rank:
+        sql = "INSERT IGNORE INTO rankdb (rank, domain, pagerank) VALUES (%s, %s, %s)"
+        values = (row['rank'], row['domain'], row['pagerank'])
+        cursor.execute(sql, values)
+        if i > 10000:
+            i=0
+            cnx.commit()
+            print ("commiting - ")
+            print (ii)
 
 sql = "delete from rankdb where domain like '%doubleclick.net%'"
 cursor.execute(sql)
