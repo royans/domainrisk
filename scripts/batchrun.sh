@@ -11,8 +11,9 @@ do
 	echo $load1m
 	if awk "BEGIN { exit $load1m > 1.0 }"
 	then
-		if awk "BEGIN { exit $load2m > 1.5 }"
+		if awk "BEGIN { exit $load5m > 1.5 }"
 		then
+      echo "Starting a new thread"
 			python3 updatedb.py &
 		fi
 	fi
