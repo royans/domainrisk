@@ -10,12 +10,16 @@ import json
 # Get database credentials from environment variables
 db_user = os.environ.get("DBUSER")
 db_password = os.environ.get("DBPASS")
+db_server = os.environ.get("DBSERVER")
+
+if db_server is None:
+    db_server = "localhost"
 
 # Database connection details (replace placeholders with your host and database name)
 config = {
     "user": db_user,
     "password": db_password,
-    "host": "localhost",
+    "host": db_server,
     "database": "domainrisk",
 }
 
