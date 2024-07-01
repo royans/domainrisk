@@ -20,7 +20,7 @@ do
 			python3 updatedb.py &
 		fi
 	fi
-	sleep 15
+	sleep 60
 	load1m=`echo $L | cut -d':' -f5 | awk '{print $1}' | cut -d',' -f1`
 	load5m=`echo $L | cut -d':' -f5 | awk '{print $2}' | cut -d',' -f1`
 done
