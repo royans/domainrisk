@@ -13,8 +13,9 @@ db_password = os.environ.get("DBPASS")
 db_server = os.environ.get("DBSERVER")
 
 if db_server is None:
-    db_server = "localhost"
+    db_server = "127.0.0.1"
 
+# "host": db_server,
 # Database connection details (replace placeholders with your host and database name)
 config = {
     "user": db_user,
