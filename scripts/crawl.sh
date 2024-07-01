@@ -21,6 +21,9 @@ do
 		fi
 	fi
 	sleep 60
+  L=`wget -q -O - 'https://toolbox.tharakan.org/up.txt'`
 	load1m=`echo $L | cut -d':' -f5 | awk '{print $1}' | cut -d',' -f1`
 	load5m=`echo $L | cut -d':' -f5 | awk '{print $2}' | cut -d',' -f1`
 done
+
+
