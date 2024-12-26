@@ -149,6 +149,38 @@ def tld(fqdn):
     output = extract_domain(remove_special_chars(fqdn))
     return output
 
+@timeout(3)
+def get_website_content(domain_name, user_agent=None):
+  """
+  Fetches the contents of a website, trying different URL variations.
+
+  Args:
+    domain_name: The domain name of the website (e.g., "google.com").
+
+  Returns:
+    The website content as a string, or None if all attempts fail.
+  """
+  url_variations = [
+      f"https://{domain_name}",
+      f"http://{domain_name}",
+      f"https://www.{domain_name}",
+      f"http://www.{domain_name}"
+  ]
+
+  if user_agent is None:
+    user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
+
+  headers = {'User-Agent': user_agent}
+
+  for url in url_variations:
+    try:
+      response = requests.get(url, headers=headers)
+      response.raise_for_status()
+      return response
+    except requests.exceptions.RequestException as e:
+      print(f"Error trying {url}: {e}")
+
+  return None
 
 @timeout(3)
 def get_homepage(domain):
@@ -161,17 +193,18 @@ def get_homepage(domain):
     ]
 
     ua = UserAgent()
-    headers = {"User-Agent": ua.chrome}  # Set Chrome User-Agent
-
+    headers = {"User-Agent": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"}  # Set Chrome User-Agent
+    
     ctx = create_urllib3_context()
 
     for url in urls:
         try:
+            print(f"Requesting {url}");
             response = requests.get(url, headers=headers, timeout=3)
             response.raise_for_status()  # Raise an exception for bad status codes
             return response
         except requests.exceptions.RequestException as e:
-            #print(f"Error fetching {url}: {e}")
+            print(f"Error fetching {url}: {e}")
             continue
 
     #print(f" - Could not find a valid homepage for {domain}")
@@ -227,7 +260,8 @@ def getDomainRisk(domain):
     domain_data = {}
     not_after_date = None
     issuer_organization = None
-    response = get_homepage(domain)
+    #response = get_homepage(domain)
+    response = get_website_content(domain)
     certinfo = get_certificate_details(domain)
     if isinstance(certinfo, dict):
         not_after_date = convert_to_YYYY_MM_DD(certinfo["notAfter"])
